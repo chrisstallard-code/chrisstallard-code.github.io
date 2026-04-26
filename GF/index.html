@@ -42,44 +42,51 @@
 </table>
 
 <script>
-    function buildTable(data) {
-        // Convert Website column into clickable links
-        data = data.map(row => {
-            if (row["Website"]) {
-                const url = row["Website"].trim();
-                row["Website"] = `<a href="${url}" target="_blank">Visit</a>`;
+function buildTable(data) {
+    data = data.map(row => {
+        if (row["Website"]) {
+            const url = row["Website"].trim();
+            row["Website"] = `<a href="${url}" target="_blank">Visit</a>`;
+        }
+        return row;
+    });
+
+    // Add search inputs to the second header row
+    $('#dataTable thead tr:eq(1) th').each(function () {
+        $(this).html('<input type="text" placeholder="Filter" style="width:100%; box-sizing:border-box;">');
+    });
+
+    const table = $('#dataTable').DataTable({
+        data: data,
+        columns: [
+            { data: "City" },
+            { data: "Suburb" },
+            { data: "Name" },
+            { data: "Food Type" },
+            { data: "Website" },
+            { data: "Address" },
+            { data: "Comments" },
+            { data: "DateEntered" },
+            { data: "DateVisited" }
+        ],
+        orderCellsTop: true,
+        fixedHeader: true,
+        pageLength: 25,
+        columnDefs: [
+            { targets: 4, orderable: false } // Website column not sortable
+        ]
+    });
+
+    // Apply per-column filtering
+    table.columns().every(function () {
+        const column = this;
+        $('input', column.header().nextElementSibling).on('keyup change', function () {
+            if (column.search() !== this.value) {
+                column.search(this.value).draw();
             }
-            return row;
         });
-
-        $('#dataTable').DataTable({
-            data: data,
-            columns: [
-                { data: "City" },
-                { data: "Suburb" },
-                { data: "Name" },
-                { data: "Food Type" },
-                { data: "Website" },
-                { data: "Address" },
-                { data: "Comments" },
-                { data: "DateEntered" },
-                { data: "DateVisited" }
-            ],
-            pageLength: 25,
-            columnDefs: [
-                { targets: 4, orderable: false } // Website column not sortable
-            ]
-        });
-    }
-
-    // Load CSV from same directory
-    fetch('data.csv')
-        .then(response => response.text())
-        .then(csvText => {
-            const parsed = Papa.parse(csvText, { header: true });
-            buildTable(parsed.data);
-        })
-        .catch(err => console.error("Error loading CSV:", err));
+    });
+}
 </script>
 
 </body>
