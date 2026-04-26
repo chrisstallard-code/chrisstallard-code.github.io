@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food Places Directory</title>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+
+    <!-- CSV parser -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        a { color: #0077cc; }
+    </style>
+</head>
+
+<body>
+
+<h2>Food Places Directory</h2>
+
+<table id="dataTable" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>City</th>
+            <th>Suburb</th>
+            <th>Name</th>
+            <th>Food Type</th>
+            <th>Website</th>
+            <th>Address</th>
+            <th>Comments</th>
+            <th>Date Entered</th>
+            <th>Date Visited</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    function buildTable(data) {
+        // Convert Website column into clickable links
+        data = data.map(row => {
+            if (row["Website"]) {
+                const url = row["Website"].trim();
+                row["Website"] = `<a href="${url}" target="_blank">Visit</a>`;
+            }
+            return row;
+        });
+
+        $('#dataTable').DataTable({
+            data: data,
+            columns: [
+                { data: "City" },
+                { data: "Suburb" },
+                { data: "Name" },
+                { data: "Food Type" },
+                { data: "Website" },
+                { data: "Address" },
+                { data: "Comments" },
+                { data: "DateEntered" },
+                { data: "DateVisited" }
+            ],
+            pageLength: 25,
+            columnDefs: [
+                { targets: 4, orderable: false } // Website column not sortable
+            ]
+        });
+    }
+
+    // Load CSV from same directory
+    fetch('data.csv')
+        .then(response => response.text())
+        .then(csvText => {
+            const parsed = Papa.parse(csvText, { header: true });
+            buildTable(parsed.data);
+        })
+        .catch(err => console.error("Error loading CSV:", err));
+</script>
+
+</body>
+</html>
